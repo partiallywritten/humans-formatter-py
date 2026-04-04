@@ -87,7 +87,7 @@ export fn WRAPS_timeFormatter(self: ?*py.PyObject, args: [*c]const ?*py.PyObject
 
     use_Formatters.timeFormatter(writer, ms, round, compound) catch return null;
 
-    return py.PyUnicode_FromStringAndSize(@ptrCast(&buf), @intCast(writer.end));
+    return py.PyUnicode_FromStringAndSize(@ptrCast(writer.buffer.ptr), @intCast(writer.end));
 }
 
 
@@ -114,7 +114,7 @@ export fn WRAPS_byteFormatter(self: ?*py.PyObject, args: [*c]const ?*py.PyObject
     
 		use_Formatters.byteFormatter(writer, s_val) catch return null;
 
-		return py.PyUnicode_FromStringAndSize(@ptrCast(&buf), @intCast(writer.end));
+		return py.PyUnicode_FromStringAndSize(@ptrCast(writer.buffer.ptr), @intCast(writer.end));
 		
 	} else { py.PyErr_SetString(py.PyExc_TypeError, "Missing required argument: size"); return null; }
 }
