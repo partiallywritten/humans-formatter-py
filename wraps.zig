@@ -19,9 +19,6 @@ export fn WRAPS_timeFormatter(self: ?*py.PyObject, args: [*c]const ?*py.PyObject
 	// discard
 	_ = self;
 	
-	// [_:null]?[*:0]const u8{...} supposed to be better but im not good enough to cast it so it could be used in py
-	var kwlist = [_][*c]const u8 { "ms", "round", "compound", null };
-	
 	// defaults
 	var ms: i64 = 0;
 	var round: bool = false;
@@ -36,8 +33,8 @@ export fn WRAPS_timeFormatter(self: ?*py.PyObject, args: [*c]const ?*py.PyObject
 	
 	// postional args parsing
 	if (nargs > 0) { ms = py.PyLong_AsLongLong(args[0]); if (py.PyErr_Occurred() != null) return null; ms_there = true; }
-	if (nargs > 1) { round = py.PyObject_IsTrue(args[1]); if (py.PyErr_Occurred() != null) return null; round_there = true; }
-	if (nargs > 2) { compound = py.PyObject_IsTrue(args[2]); if (py.PyErr_Occurred() != null) return null; compound_there = true; }
+	if (nargs > 1) { round = py.PyObject_IsTrue(args[1]) == 1; if (py.PyErr_Occurred() != null) return null; round_there = true; }
+	if (nargs > 2) { compound = py.PyObject_IsTrue(args[2]) == 1; if (py.PyErr_Occurred() != null) return null; compound_there = true; }
 	
 	// keyword args parsing
 	if (kwnames != null) {
@@ -50,30 +47,30 @@ export fn WRAPS_timeFormatter(self: ?*py.PyObject, args: [*c]const ?*py.PyObject
 			const key = py.PyTuple_GetItem(kwnames, i);
 			if (key == null ) return null;
 			
-			const value = args[nargs+i]; // in fast call layout is [positional..., keyword_values...]
+			const value = args[@intCast(nargs + i)]; // in fast call layout is [positional..., keyword_values...]
 			
 			if (py.PyUnicode_CompareWithASCIIString(key, "ms") == 0) {
 				ms = py.PyLong_AsLongLong(value);
 				if (py.PyErr_Occurred() != null) return null;
 				
-				if (ms_there) { PyErr_SetString(PyExc_TypeError, "Multiple values for argument 'ms'"); return null; }
+				if (ms_there) { py.PyErr_SetString(py.PyExc_TypeError, "Multiple values for argument 'ms'"); return null; }
 				ms_there = true;
 			}
 			else if (py.PyUnicode_CompareWithASCIIString(key, "round") == 0) {
-				round = py.PyObject_IsTrue(value);
+				round = py.PyObject_IsTrue(value) == 1;
 				if (py.PyErr_Occurred() != null) return null;
 				
-				if (round_there) { PyErr_SetString(PyExc_TypeError, "Multiple values for argument 'round'"); return null; }
+				if (round_there) { py.PyErr_SetString(py.PyExc_TypeError, "Multiple values for argument 'round'"); return null; }
 				round_there = true;
 			}
 			else if (py.PyUnicode_CompareWithASCIIString(key, "compound") == 0) {
-				compound = py.PyObject_IsTrue(value);
+				compound = py.PyObject_IsTrue(value) == 1;
 				if (py.PyErr_Occurred() != null) return null;
 				
-				if (compound_there) { PyErr_SetString(PyExc_TypeError, "Multiple values for argument 'compound'"); return null; }
+				if (compound_there) { py.PyErr_SetString(py.PyExc_TypeError, "Multiple values for argument 'compound'"); return null; }
 				compound_there = true;
 			}
-			else { py.PyErr_Format(py.PyExc_TypeError, "Unexpected keyword argument '%U'", key); return null; }
+			else { _ = py.PyErr_Format(py.PyExc_TypeError, "Unexpected keyword argument '%U'", key); return null; }
 		}
 	}
 	
@@ -85,7 +82,7 @@ export fn WRAPS_timeFormatter(self: ?*py.PyObject, args: [*c]const ?*py.PyObject
     var buf: [128]u8 = undefined;
     var writer = std.Io.Writer.fixed(&buf);
 
-    use_Formatters.timeFormatter(writer, ms, round, compound) catch return null;
+    use_Formatters.timeFormatter(&writer, ms, round, compound) catch return null;
 
     return py.PyUnicode_FromStringAndSize(@ptrCast(writer.buffer.ptr), @intCast(writer.end));
 }
@@ -112,8 +109,9 @@ export fn WRAPS_byteFormatter(self: ?*py.PyObject, args: [*c]const ?*py.PyObject
 		var buf: [64]u8 = undefined;
 		var writer = std.Io.Writer.fixed(&buf);
     
-		use_Formatters.byteFormatter(writer, s_val) catch return null;
-
+		use_Formatters.byteFormatter(&writer, s_val) catch return null;
+		
+		// or buf[0..].ptr
 		return py.PyUnicode_FromStringAndSize(@ptrCast(writer.buffer.ptr), @intCast(writer.end));
 		
 	} else { py.PyErr_SetString(py.PyExc_TypeError, "Missing required argument: size"); return null; }
@@ -122,7 +120,7 @@ export fn WRAPS_byteFormatter(self: ?*py.PyObject, args: [*c]const ?*py.PyObject
 
 
 // Python extention def
-const HUMANS_METHODS = [_:null]py.PyMethodDef{
+const HUMANS_METHODS = [_]py.PyMethodDef{
     .{
         .ml_name = "human_time",
         .ml_meth = @ptrCast(&WRAPS_timeFormatter),
@@ -139,11 +137,11 @@ const HUMANS_METHODS = [_:null]py.PyMethodDef{
 };
 
 export var humansmodule = py.PyModuleDef{
-    .m_base = py.PyModuleDef_HEAD_INIT,
+    // .m_base = std.mem.zeroInit(@TypeOf(py.PyModuleDef.m_base), .{}),
     .m_name = "humans",
     .m_doc = "Utility to convert time and bytes to human readable format",
     .m_size = -1,
-    .m_methods = &HUMANS_METHODS,
+    .m_methods = @constCast(&HUMANS_METHODS),
     .m_slots = null,
     .m_traverse = null,
     .m_clear = null,
