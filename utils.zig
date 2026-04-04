@@ -12,14 +12,15 @@ const std = @import("std");
 pub fn timeFormatter(zWriter: anytype, MS: i64, SHOULD_COMPOUND: bool, SHOULD_ROUND: bool) !void{
     // what else am i supposed to do~~
     if (MS==0) {
-        try zWriter.print("small dih, big dreams");
+        try zWriter.print("0ms", .{});
         return;
     }
     
-    const SECOND: u64 = 1000;
-    const MINUTE: u64 = 60 * SECOND;
-    const HOUR: u64 = 60 * MINUTE;
-    const DAY: u64 = 24 * HOUR;
+    // std.time.ms_per_xxx is better but oh well
+    comptime const SECOND: u64 = 1000;
+    comptime const MINUTE: u64 = 60 * SECOND;
+    comptime const HOUR: u64 = 60 * MINUTE;
+    comptime const DAY: u64 = 24 * HOUR;
     
     const is_negative: bool = MS < 0;
     // better way is @abs but my zig version was outdated as i was writing this and just didnt want to use std.math
@@ -43,6 +44,14 @@ pub fn timeFormatter(zWriter: anytype, MS: i64, SHOULD_COMPOUND: bool, SHOULD_RO
         
         // yes i could've written tiny parts (ex: 1d) as i go through checks
         // but to keep the resulting string clean i have to do this
+        // this output as follows:
+        // xd xh xm xs
+        // xh xm xs
+        // xm xs
+        // xs
+        // xms
+        // why? well this was intended to be used in my bots which are always I/O bound. What use does ms counter give in that situation?
+        // 			ms is there just in-case downloads gets stuck last bit (pun-intended) and needs to give the user some (false) hope
         if (days > 0) {
             try zWriter.print("{d}d {d}h {d}m {d}s", .{ days, hours, minutes, seconds })
         } else if (hours > 0) {
@@ -105,6 +114,7 @@ pub fn byteFormatter(zWriter: anytype, SIZE: i64) !void {
 
 
 // I need to update this gang
+// doesnt work, yet to be tested
 pub fn main() !void {
     const should_compund: bool = true;
     const timett = 60*60*24*2 * 1000 + 60*880*24*2 * 1000;
