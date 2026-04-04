@@ -94,6 +94,12 @@ pub fn timeFormatter(zWriter: anytype, MS: i64, SHOULD_COMPOUND: bool, SHOULD_RO
 //  - zWriter: anytype - pass std.Io.Writer.fixed(&somebuffer) here. expected from WRAPS_byteFormatter
 //  - SIZE: well its self explanatory isnt it?
 pub fn byteFormatter(zWriter: anytype, SIZE: i64) !void {
+	// what else am i supposed to do~~
+    if (SIZE==0) {
+        try zWriter.print("0 B", .{});
+        return;
+    }
+    
     const units = [_][]const u8{"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"};
     var uindx: usize = 0;
     

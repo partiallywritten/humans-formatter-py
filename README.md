@@ -3,4 +3,4 @@ Rough implementation of my pypi library, [humans-formatter](https://pypi.org/pro
 This will be replacing original C version when I'm done
 
 ### Where it is now
-As of 1st Apr 2026, the core functions are there, just not fine-tuned nor compatible with python (well its just 2 zig functions as of now lol).
+As of 4th Apr 2026, basic api and basic c wrapping is done but needs final polishes, modularity of the own code and some bug fixes.
