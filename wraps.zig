@@ -1,4 +1,3 @@
-// reserved
 // c wraps
 // uses: https://docs.python.org/3/c-api/structures.html#c.PyCFunctionFastWithKeywords
 
@@ -6,6 +5,7 @@ const std = @import("std");
 const use_Formatters = @import("utils.zig");
 
 // Supports 3.14+ because i only have that installed as of 2026 Apr. 4
+// however plans to support 3.13+ as it's the lowest I can go since this uses PyCFunctionFastWithKeywords
 const py = @cImport({
 	@cDefine("PY_SSIZE_T_CLEAN", "1");
     @cDefine("Py_LIMITED_API", "0x030E0000");
@@ -41,11 +41,15 @@ export fn WRAPS_timeFormatter(self: ?*py.PyObject, args: [*c]const ?*py.PyObject
 	
 	// keyword args parsing
 	if (kwnames != null) {
-		const key_count = py.PyTuple_GET_SIZE(kwnames);
+		const key_count: py.Py_ssize_t = py.PyTuple_Size(kwnames);
+		if (key_count < 0) return null;
+		
 		var i: py.Py_ssize_t = 0;
 		
 		while ( key_count > i ) : ( i += 1) {
-			const key = py.PyTuple_GET_ITEM(kwnames, i);
+			const key = py.PyTuple_GetItem(kwnames, i);
+			if (key == null ) return null;
+			
 			const value = args[nargs+i]; // in fast call layout is [positional..., keyword_values...]
 			
 			if (py.PyUnicode_CompareWithASCIIString(key, "ms") == 0) {
