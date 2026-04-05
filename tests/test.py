@@ -10,20 +10,20 @@ def bench(stmt, setup):
 def compare():
     t1 = bench(
         "f(360000)",
-        "import humans; f = humans.human_time",
+        "import humans; f = humans.time",
     )
     t2 = bench(
         "f(360000)",
-        "import origin; f = origin.TimeFormatter",
+        "import origin; f = origin.time_formatter",
     )
 
     b1 = bench(
         "f(1024*1024*1024)",
-        "import humans; f = humans.human_bytes",
+        "import humans; f = humans.bytes",
     )
     b2 = bench(
         "f(1024*1024*1024)",
-        "import origin; f = origin.humanbytes",
+        "import origin; f = origin.byte_formatter",
     )
 
     print("Time Formatter")

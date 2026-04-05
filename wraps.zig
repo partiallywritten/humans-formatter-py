@@ -33,8 +33,8 @@ export fn WRAPS_timeFormatter(self: ?*py.PyObject, args: [*c]const ?*py.PyObject
 	
 	// postional args parsing
 	if (nargs > 0) { ms = py.PyLong_AsLongLong(args[0]); if (py.PyErr_Occurred() != null) return null; ms_there = true; }
-	if (nargs > 1) { round = py.PyObject_IsTrue(args[1]) == 1; if (py.PyErr_Occurred() != null) return null; round_there = true; }
-	if (nargs > 2) { compound = py.PyObject_IsTrue(args[2]) == 1; if (py.PyErr_Occurred() != null) return null; compound_there = true; }
+	if (nargs > 1) { compound = py.PyObject_IsTrue(args[1]) == 1; if (py.PyErr_Occurred() != null) return null; compound_there = true; }
+	if (nargs > 2) { round = py.PyObject_IsTrue(args[2]) == 1; if (py.PyErr_Occurred() != null) return null; round_there = true; }
 	
 	// keyword args parsing
 	if (kwnames != null) {
@@ -56,13 +56,6 @@ export fn WRAPS_timeFormatter(self: ?*py.PyObject, args: [*c]const ?*py.PyObject
 				if (ms_there) { py.PyErr_SetString(py.PyExc_TypeError, "Multiple values for argument 'ms'"); return null; }
 				ms_there = true;
 			}
-			else if (py.PyUnicode_CompareWithASCIIString(key, "round") == 0) {
-				round = py.PyObject_IsTrue(value) == 1;
-				if (py.PyErr_Occurred() != null) return null;
-				
-				if (round_there) { py.PyErr_SetString(py.PyExc_TypeError, "Multiple values for argument 'round'"); return null; }
-				round_there = true;
-			}
 			else if (py.PyUnicode_CompareWithASCIIString(key, "compound") == 0) {
 				compound = py.PyObject_IsTrue(value) == 1;
 				if (py.PyErr_Occurred() != null) return null;
@@ -70,20 +63,27 @@ export fn WRAPS_timeFormatter(self: ?*py.PyObject, args: [*c]const ?*py.PyObject
 				if (compound_there) { py.PyErr_SetString(py.PyExc_TypeError, "Multiple values for argument 'compound'"); return null; }
 				compound_there = true;
 			}
+			else if (py.PyUnicode_CompareWithASCIIString(key, "round") == 0) {
+				round = py.PyObject_IsTrue(value) == 1;
+				if (py.PyErr_Occurred() != null) return null;
+				
+				if (round_there) { py.PyErr_SetString(py.PyExc_TypeError, "Multiple values for argument 'round'"); return null; }
+				round_there = true;
+			}
 			else { _ = py.PyErr_Format(py.PyExc_TypeError, "Unexpected keyword argument '%U'", key); return null; }
 		}
 	}
 	
-	// required arguments
+	// required arguments and other checks
 	if (!ms_there) { py.PyErr_SetString(py.PyExc_TypeError, "Missing required argument: ms"); return null; }
+	if (round_there and compound_there) { py.PyErr_SetString(py.PyExc_TypeError, "Cannot satisfy both 'round' and 'compound', use one at a time"); return null; }
 	
 	//---------------------------- MANUAL PARSING END ----------------------------///
 	
     var buf: [128]u8 = undefined;
     var writer = std.Io.Writer.fixed(&buf);
 
-    use_Formatters.timeFormatter(&writer, ms, round, compound) catch return null;
-
+    use_Formatters.timeFormatter(&writer, ms, compound, round) catch return null;
     return py.PyUnicode_FromStringAndSize(@ptrCast(writer.buffer.ptr), @intCast(writer.end));
 }
 
@@ -110,7 +110,6 @@ export fn WRAPS_byteFormatter(self: ?*py.PyObject, args: [*c]const ?*py.PyObject
 		var writer = std.Io.Writer.fixed(&buf);
     
 		use_Formatters.byteFormatter(&writer, s_val) catch return null;
-		
 		// or buf[0..].ptr
 		return py.PyUnicode_FromStringAndSize(@ptrCast(writer.buffer.ptr), @intCast(writer.end));
 		
@@ -122,16 +121,16 @@ export fn WRAPS_byteFormatter(self: ?*py.PyObject, args: [*c]const ?*py.PyObject
 // Python extention def
 const HUMANS_METHODS = [_]py.PyMethodDef{
     .{
-        .ml_name = "human_time",
+        .ml_name = "time",
         .ml_meth = @ptrCast(&WRAPS_timeFormatter),
         .ml_flags = py.METH_FASTCALL | py.METH_KEYWORDS,
-        .ml_doc = "human_time(ms: int, round: bool = False, compound: bool = False)\nFormat milliseconds into human readable form.",
+        .ml_doc = "time(ms: int, compound: bool = False, round: bool = False)\nFormat milliseconds into human readable form. Use only one argument except 'ms' at a time",
     },
     .{
-        .ml_name = "human_bytes",
-        .ml_meth = @ptrCast(&WRAPS_byteFormatter), // Your wrapper
+        .ml_name = "bytes",
+        .ml_meth = @ptrCast(&WRAPS_byteFormatter),
         .ml_flags = py.METH_FASTCALL,
-        .ml_doc = "human_bytes(size: int)\nConvert byte count into human readable KiB/MiB/etc.",
+        .ml_doc = "bytes(size: int)\nConvert bytes into human readable KiB/MiB/etc.",
     },
     .{ .ml_name = null, .ml_meth = null, .ml_flags = 0, .ml_doc = null },
 };
@@ -139,7 +138,7 @@ const HUMANS_METHODS = [_]py.PyMethodDef{
 export var humansmodule = py.PyModuleDef{
     // .m_base = std.mem.zeroInit(@TypeOf(py.PyModuleDef.m_base), .{}),
     .m_name = "humans",
-    .m_doc = "Utility to convert time and bytes to human readable format",
+    .m_doc = "Python extension to format time(ms) and bytes into human readable strings",
     .m_size = -1,
     .m_methods = @constCast(&HUMANS_METHODS),
     .m_slots = null,

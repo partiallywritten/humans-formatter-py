@@ -27,6 +27,8 @@ pub fn timeFormatter(zWriter: anytype, MS: i64, SHOULD_COMPOUND: bool, SHOULD_RO
     // was that a good decision? no, do i regret writing this as is? no
     var casted_time: u64 = if (is_negative) (~@as(u64, @bitCast(MS)) + 1) else @intCast(MS);
     
+    if (is_negative) try zWriter.writeByte('-');
+    
     // compounding formatting
     if (SHOULD_COMPOUND) {
         const days: u64 = casted_time / DAY;
@@ -39,8 +41,6 @@ pub fn timeFormatter(zWriter: anytype, MS: i64, SHOULD_COMPOUND: bool, SHOULD_RO
         casted_time -= minutes * MINUTE;
         
         const seconds: u64 = casted_time / SECOND;
-        
-        if (is_negative) try zWriter.writeByte('-');
         
         // yes i could've written tiny parts (ex: 1d) as i go through checks
         // but to keep the resulting string clean i have to do this
@@ -64,7 +64,6 @@ pub fn timeFormatter(zWriter: anytype, MS: i64, SHOULD_COMPOUND: bool, SHOULD_RO
             try zWriter.print("{d}ms", .{ casted_time });
         }
         
-        // std.debug.print("new {d}d {d}h {d}m {d}s {d}ms\n", .{ days, hours, minutes, seconds, casted_time });
     } else {
         
         // return largest unit only
