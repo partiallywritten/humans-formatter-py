@@ -2,3 +2,4 @@ cmd.sh
 *.so
 untitled
 tests/breakit.py
+**/__pycache__/

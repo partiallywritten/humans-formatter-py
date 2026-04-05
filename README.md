@@ -33,20 +33,50 @@ Replace with your python version (`python --version`) and path
 
 ### Performance results
 ```
-Time Formatter
- Faster: True
- Speedup: 5.17x
- humans: 0.07622953100053564
- origin: 0.3940906799998629
+=== Benchmark (stable + realistic) ===
 
-Human Bytes
- Faster: True
- Speedup: 4.50x
- humans: 0.18568539199986844
- origin: 0.8354882809999253
+[humans.time()]
+  Runs:        5
+  Iterations:  3,000,000
+  Mean total:  0.377207 sec
+  Best total:  0.374318 sec
+  Std dev:     0.003188 sec
+  Mean/op:     125.74 ns
+  Best/op:     124.77 ns
+
+[humans.bytes()]
+  Runs:        5
+  Iterations:  3,000,000
+  Mean total:  0.603314 sec
+  Best total:  0.596138 sec
+  Std dev:     0.009020 sec
+  Mean/op:     201.10 ns
+  Best/op:     198.71 ns
+
+[origin.time()]
+  Runs:        5
+  Iterations:  3,000,000
+  Mean total:  2.383333 sec
+  Best total:  2.332734 sec
+  Std dev:     0.039932 sec
+  Mean/op:     794.44 ns
+  Best/op:     777.58 ns
+
+[origin.bytes()]
+  Runs:        5
+  Iterations:  3,000,000
+  Mean total:  2.673346 sec
+  Best total:  2.658478 sec
+  Std dev:     0.010153 sec
+  Mean/op:     891.12 ns
+  Best/op:     886.16 ns
+
+[Sample Outputs]
+  humans.time: 1h 1m 1s
+  humans.bytes: 1.00 GiB
  
 Tested on home server: i3-4130, 2TB HDD on arch linux, python 3.14.3 & zig 0.15.2
 ```
 
-see [test.py](tests/test.py) and [python implementation](tests/origin.py) for more info.
+see [test.py](tests/bench.py) and [python implementation](tests/origin.py) for more info.
 Both are optimized and implementations of the same logic
