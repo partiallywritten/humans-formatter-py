@@ -33,7 +33,7 @@ print(humans.bytes.__doc__)
 >   - zig 0.15.2 (or newer, not tested) as it uses `std.Io.Writer` (see [Writergate update](https://ziglang.org/download/0.15.1/release-notes.html#Writergate))
 
 ```sh
-zig build-lib -dynamic -O ReleaseFast -I /usr/include/python<x.xx> -femit-bin=<path> -lc wraps.zig
+zig build-lib -dynamic -O ReleaseFast -I /usr/include/python<x.xx> -femit-bin=<path> -lc wrapper.zig
 ```
 Replace placeholders with
   - `python<x.xx>` - Your python version (`python --version`). ex: `python3.14`
