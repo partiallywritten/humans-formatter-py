@@ -6,8 +6,8 @@
 const std = @import("std");
 const use_Formatters = @import("formatter.zig");
 
-// Supports 3.14+ because i only have that installed as of 2026 Apr. 4
-// however plans to support 3.13+ as it's the lowest I can go since this uses PyCFunctionFastWithKeywords
+// Supports 3.13+ as it's the lowest it can go since this uses PyCFunctionFastWithKeywords
+// but in practice if the api is there in the header file, it should compile. tested with 3.12
 const py = @cImport({
 	@cDefine("PY_SSIZE_T_CLEAN", "1");
     @cDefine("Py_LIMITED_API", "0x030E0000");
@@ -88,10 +88,10 @@ export fn WRAPS_timeFormatter(self: ?*py.PyObject, args: [*c]const ?*py.PyObject
 	
 	//---------------------------- MANUAL PARSING END ----------------------------///
 	
-    var buf: [128]u8 = undefined;
+    var buf: [64]u8 = undefined;
     var writer = std.Io.Writer.fixed(&buf);
 
-    use_Formatters.timeFormatter(&writer, ms, compound, round) catch return null;
+    use_Formatters.timeFormatter(&writer, ms, compound, round) catch { py.PyErr_SetString(py.PyExc_BufferError, "Ran out of allocated space"); return null; };
     return py.PyUnicode_FromStringAndSize(@ptrCast(writer.buffer.ptr), @intCast(writer.end));
 }
 
@@ -117,7 +117,7 @@ export fn WRAPS_byteFormatter(self: ?*py.PyObject, args: [*c]const ?*py.PyObject
 		var buf: [64]u8 = undefined;
 		var writer = std.Io.Writer.fixed(&buf);
     
-		use_Formatters.byteFormatter(&writer, s_val) catch return null;
+		use_Formatters.byteFormatter(&writer, s_val) catch { py.PyErr_SetString(py.PyExc_BufferError, "Ran out of allocated space"); return null; };
 		// or buf[0..].ptr
 		return py.PyUnicode_FromStringAndSize(@ptrCast(writer.buffer.ptr), @intCast(writer.end));
 		

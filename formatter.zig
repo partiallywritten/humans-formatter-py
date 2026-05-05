@@ -85,7 +85,6 @@ pub fn timeFormatter(zWriter: anytype, MS: i64, SHOULD_COMPOUND: bool, SHOULD_RO
         try zWriter.print("{d}{s}", .{ value, suffix });
         
     }
-    
 }
 
 // func def: byteFormatter
@@ -95,7 +94,7 @@ pub fn timeFormatter(zWriter: anytype, MS: i64, SHOULD_COMPOUND: bool, SHOULD_RO
 pub fn byteFormatter(zWriter: anytype, SIZE: i64) !void {
 	// what else am i supposed to do~~
     if (SIZE==0) {
-        try zWriter.print("0 B", .{});
+        try zWriter.writeAll("0 B");
         return;
     }
     
@@ -109,17 +108,19 @@ pub fn byteFormatter(zWriter: anytype, SIZE: i64) !void {
     while ( casted_size >= 1024 and index < units.len - 1 ) {
 		rem = @intCast(casted_size & 1023); // take bits at 0-9
 		casted_size = casted_size >> 10; // shift right by 10
+		// yes yes compilers are smart enough to do above optimizations but fuck it
 		index += 1;
 	}
     
     if (is_negative) try zWriter.writeByte('-');
     
-    if (index == 0) { try zWriter.print("{d} {s}", .{ casted_size, units[index] }); }
+    if (index == 0) { try zWriter.print("{d} B", .{ casted_size }); }
     else {
 		// how many % = rem / 10.24
 		// so instead of div by 10.24, (rem * 100) / 1024
 		// but we round up so ((rem * 100) + 512) / 1024
-		const frac: u32 = ((@as(u32, rem) * 100) + 512) / 1024;
+		var frac: u32 = ((@as(u32, rem) * 100) + 512) >> 10;
+		if (frac >= 100) { casted_size += 1; frac = 0; }
 		try zWriter.print(
 			// [1]d:0>2 -> argument at position 1 is of specifier d:
 			//             with width of 2 and if arg is shorter than width, pad left with '0' thereby aligning the arg to the right

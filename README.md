@@ -29,7 +29,7 @@ print(humans.bytes.__doc__)
 
 > [!IMPORTANT]
 > This extension requires,
->   - python 3.13 or newer as it uses [fast calls](https://docs.python.org/3/c-api/structures.html#c.METH_FASTCALL)
+>   - python 3.13 or newer as it uses [fast calls](https://docs.python.org/3/c-api/structures.html#c.METH_FASTCALL) [^1]
 >   - zig 0.15.2 (or newer, not tested) as it uses `std.Io.Writer` (see [Writergate update](https://ziglang.org/download/0.15.1/release-notes.html#Writergate))
 
 ```sh
@@ -48,45 +48,45 @@ Up to **6.5x** speed boost on `humans.time()` and Up to **6.4x** speed boost on 
   <summary>Click to See detailed results</summary>
   
   ```
- ======== Benchmark ========
+======== Benchmark ========
 
- [humans.time()]
+[humans.time()]
    Runs:        5
    Iterations:  3,000,000
-   Mean total:  0.360692 sec
-   Best total:  0.354795 sec
-   Std dev:     0.007005 sec
-   Mean/op:     120.23 ns
-   Best/op:     118.26 ns
+   Mean total:  0.329832 sec
+   Best total:  0.327457 sec
+   Std dev:     0.003686 sec
+   Mean/op:     109.94 ns
+   Best/op:     109.15 ns
 
- [humans.bytes()]
+[humans.bytes()]
    Runs:        5
    Iterations:  3,000,000
-   Mean total:  0.399735 sec
-   Best total:  0.387777 sec
-   Std dev:     0.014533 sec
-   Mean/op:     133.24 ns
-   Best/op:     129.26 ns
+   Mean total:  0.374867 sec
+   Best total:  0.371739 sec
+   Std dev:     0.003231 sec
+   Mean/op:     124.96 ns
+   Best/op:     123.91 ns
 
- [origin.time()]
+[origin.time()]
    Runs:        5
    Iterations:  3,000,000
-   Mean total:  2.349150 sec
-   Best total:  2.336186 sec
-   Std dev:     0.007540 sec
-   Mean/op:     783.05 ns
-   Best/op:     778.73 ns
+   Mean total:  2.346812 sec
+   Best total:  2.323678 sec
+   Std dev:     0.016030 sec
+   Mean/op:     782.27 ns
+   Best/op:     774.56 ns
 
- [origin.bytes()]
+[origin.bytes()]
    Runs:        5
    Iterations:  3,000,000
-   Mean total:  2.561663 sec
-   Best total:  2.557630 sec
-   Std dev:     0.003903 sec
-   Mean/op:     853.89 ns
-   Best/op:     852.54 ns
+   Mean total:  2.641040 sec
+   Best total:  2.629541 sec
+   Std dev:     0.012963 sec
+   Mean/op:     880.35 ns
+   Best/op:     876.51 ns
 
- [Sample Outputs]
+[Sample Outputs]
    humans.time: 1h 1m 1s
    humans.bytes: 1.00 GiB
   ```
@@ -94,3 +94,6 @@ Up to **6.5x** speed boost on `humans.time()` and Up to **6.4x** speed boost on 
 
 see [bench.py](tests/bench.py) and [python implementation](tests/origin.py) for more info.
 Both are optimized and implementations of the same logic
+
+
+[^1]: It can be compiled on older versions as long as the header file contain necessary signatures and macros
