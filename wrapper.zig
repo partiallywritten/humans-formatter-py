@@ -88,7 +88,7 @@ export fn WRAPS_timeFormatter(self: ?*py.PyObject, args: [*c]const ?*py.PyObject
 	
 	//---------------------------- MANUAL PARSING END ----------------------------///
 	
-    var buf: [64]u8 = undefined;
+    var buf: [32]u8 = undefined; // i64 can result in 26 chars at max which is ~292 million yrs
     var writer = std.Io.Writer.fixed(&buf);
 
     use_Formatters.timeFormatter(&writer, ms, compound, round) catch { py.PyErr_SetString(py.PyExc_BufferError, "Ran out of allocated space"); return null; };
@@ -114,7 +114,7 @@ export fn WRAPS_byteFormatter(self: ?*py.PyObject, args: [*c]const ?*py.PyObject
 	//---------------------------- MANUAL PARSING END ----------------------------///
 	
     if (size) |s_val| {
-		var buf: [64]u8 = undefined;
+		var buf: [32]u8 = undefined; // i64 can bit less than 8 eib
 		var writer = std.Io.Writer.fixed(&buf);
     
 		use_Formatters.byteFormatter(&writer, s_val) catch { py.PyErr_SetString(py.PyExc_BufferError, "Ran out of allocated space"); return null; };
@@ -158,4 +158,3 @@ export var humansmodule = py.PyModuleDef{
 pub export fn PyInit_humans() ?*py.PyObject {
     return py.PyModule_Create(&humansmodule);
 }
-
