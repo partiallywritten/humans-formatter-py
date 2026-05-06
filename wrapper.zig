@@ -10,7 +10,7 @@ const use_Formatters = @import("formatter.zig");
 // but in practice if the api is there in the header file, it should compile. tested with 3.12
 const py = @cImport({
 	@cDefine("PY_SSIZE_T_CLEAN", "1");
-    @cDefine("Py_LIMITED_API", "0x030E0000");
+    @cDefine("Py_LIMITED_API", "0x030D0000");
     @cInclude("Python.h");
 });
 
@@ -114,7 +114,7 @@ export fn WRAPS_byteFormatter(self: ?*py.PyObject, args: [*c]const ?*py.PyObject
 	//---------------------------- MANUAL PARSING END ----------------------------///
 	
     if (size) |s_val| {
-		var buf: [32]u8 = undefined; // i64 can bit less than 8 eib
+		var buf: [16]u8 = undefined; // i64 can bit less than 8 eib
 		var writer = std.Io.Writer.fixed(&buf);
     
 		use_Formatters.byteFormatter(&writer, s_val) catch { py.PyErr_SetString(py.PyExc_BufferError, "Ran out of allocated space"); return null; };
