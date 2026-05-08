@@ -102,7 +102,7 @@ pub fn byteFormatter(zWriter: anytype, SIZE: i64) !void {
     var index: usize = 0;
     
     const is_negative: bool = SIZE < 0;
-    var casted_size: u128 = if (is_negative) (~@as(u64, @bitCast(SIZE)) + 1) else @intCast(SIZE);
+    var casted_size: u64 = if (is_negative) (~@as(u64, @bitCast(SIZE)) + 1) else @intCast(SIZE);
     var rem: u16 = 0;
     
     while ( casted_size >= 1024 and index < units.len - 1 ) {
